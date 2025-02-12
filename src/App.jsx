@@ -91,6 +91,7 @@ function App() {
     );
     axios.defaults.headers.common.Authorization = token;
     checkUserLogin();
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
