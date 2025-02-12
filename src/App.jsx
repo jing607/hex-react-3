@@ -74,11 +74,15 @@ function App() {
 
   const checkUserLogin = async () => {
     try {
-      await axios.post(`${BASE_URL}/v2/api/user/check`);
-      getProducts();
-      setIsAuth(true);
-      // alert("使用者已登入");
+      const response = await axios.post(`${BASE_URL}/v2/api/user/check`);
+      if (response.data.success) {
+        setIsAuth(true);
+        getProducts();
+      } else {
+        setIsAuth(false);
+      }
     } catch (error) {
+      setIsAuth(false);
       alert('檢查使用者登入狀態失敗：' + error.message);
     }
   };
@@ -89,7 +93,7 @@ function App() {
       /(?:(?:^|.*;\s*)hexToken\s*\=\s*([^;]*).*$)|^.*$/,
       '$1'
     );
-    axios.defaults.headers.common.Authorization = token;
+    axios.defaults.headers.common['Authorization'] = token;
     checkUserLogin();
     // eslint-disable-next-line
   }, []);
