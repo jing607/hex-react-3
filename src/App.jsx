@@ -249,9 +249,9 @@ function App() {
       }
     );
     if (response.data.success) {
-      alert('編輯成功');
+      alert('更新產品成功');
     } else {
-      throw new Error(response.data.message || '編輯失敗');
+      throw new Error(response.data.message || '更新產品失敗');
     }
     // } catch (error) {
     //   alert('編輯產品失敗：' + error.message);
@@ -274,7 +274,6 @@ function App() {
       await apiCall();
       getProducts();
       handleCloseProductModal();
-      alert('更新產品成功');
     } catch (error) {
       alert('更新產品失敗：' + error.message);
     }
