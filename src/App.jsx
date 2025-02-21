@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useState, useEffect, useRef } from 'react';
 import { Modal } from 'bootstrap';
+import LoginPage from './pages/LoginPage';
 const { VITE_BASE_URL: BASE_URL, VITE_API_PATH: API_PATH } = import.meta.env;
 
 const defaultModalState = {
@@ -21,52 +22,22 @@ function App() {
   const [products, setProducts] = useState([]);
   const [tempProduct, setTempProduct] = useState(defaultModalState);
   const [modalMode, setModalMode] = useState(null);
+  const [pageInfo, setPageInfo] = useState({});
 
-  const [account, setAccount] = useState({
-    username: '',
-    password: '',
-  });
+  
 
   const productModalRef = useRef(null);
   const delProductModalRef = useRef(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
 
-    setAccount({
-      ...account,
-      [name]: value,
-    });
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await axios.post(`${BASE_URL}/v2/admin/signin`, account);
-      const { token, expired } = response.data;
-
-      if (!token || !expired) {
-        throw new Error('帳號或密碼錯誤');
-      }
-      document.cookie = `hexToken=${token}; expires=${new Date(expired)}`;
-
-      axios.defaults.headers.common['Authorization'] = token;
-
-      getProducts();
-      setIsAuth(true);
-      console.log(response);
-    } catch (error) {
-      alert('登入失敗：' + error.message);
-    }
-  };
-
-  const getProducts = async () => {
+  const getProducts = async (page = 1) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/v2/api/${API_PATH}/admin/products`
+        `${BASE_URL}/v2/api/${API_PATH}/admin/products?page=${page}`
       );
       setProducts(response.data.products);
+      setPageInfo(response.data.pagination);
+      console.log(response.data);
     } catch (error) {
       alert('取得產品列表失敗：' + error.message);
     }
@@ -210,7 +181,6 @@ function App() {
   };
 
   const createProduct = async () => {
-    // try {
     const response = await axios.post(
       `${BASE_URL}/v2/api/${API_PATH}/admin/product`,
       {
@@ -228,14 +198,9 @@ function App() {
     } else {
       throw new Error(response.data.message || '新增失敗');
     }
-
-    // } catch (error) {
-    //   alert('新增產品失敗：' + error.message);
-    // }
   };
 
   const editProduct = async () => {
-    // try {
     const response = await axios.put(
       `${BASE_URL}/v2/api/${API_PATH}/admin/product/${tempProduct.id}`,
       {
@@ -253,9 +218,6 @@ function App() {
     } else {
       throw new Error(response.data.message || '更新產品失敗');
     }
-    // } catch (error) {
-    //   alert('編輯產品失敗：' + error.message);
-    // }
   };
 
   const deleteProduct = async () => {
@@ -287,6 +249,39 @@ function App() {
     } catch (error) {
       alert('刪除產品失敗：' + error.message);
     }
+  };
+
+  const handlePageChange = (page) => {
+    getProducts(page);
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file-to-upload', file);
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/v2/api/${API_PATH}/admin/upload`,
+        formData
+      );
+
+      const uploadeImageUrl = res.data.imageUrl;
+      
+      setTempProduct({
+        ...tempProduct,
+        imageUrl: uploadeImageUrl,
+      });
+    } catch (error) {
+      alert('上傳圖片失敗：' + error.message);
+    }
+    e.target.value = ''; // 清空input值
   };
 
   return (
@@ -353,42 +348,53 @@ function App() {
               </table>
             </div>
           </div>
+
+          <div className="d-flex justify-content-center">
+            <nav>
+              <ul className="pagination">
+                <li className={`page-item ${!pageInfo.has_pre && 'disabled'}`}>
+                  <a
+                    onClick={() => handlePageChange(pageInfo.current_page - 1)}
+                    className="page-link"
+                    href="#"
+                  >
+                    上一頁
+                  </a>
+                </li>
+
+                {Array.from({ length: pageInfo.total_pages }).map(
+                  (_, index) => (
+                    <li
+                      className={`page-item ${
+                        pageInfo.current_page === index + 1 && 'active'
+                      }`}
+                      key={index}
+                    >
+                      <a
+                        onClick={() => handlePageChange(index + 1)}
+                        className="page-link"
+                        href="#"
+                      >
+                        {index + 1}
+                      </a>
+                    </li>
+                  )
+                )}
+
+                <li className={`page-item ${!pageInfo.has_next && 'disabled'}`}>
+                  <a
+                    onClick={() => handlePageChange(pageInfo.current_page + 1)}
+                    className="page-link"
+                    href="#"
+                  >
+                    下一頁
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
-      ) : (
-        <div className="d-flex flex-column justify-content-center align-items-center vh-100">
-          <h1 className="mb-5">請先登入</h1>
-          <form onSubmit={handleLogin} className="d-flex flex-column gap-3">
-            <div className="form-floating mb-3">
-              <input
-                min="0"
-                value={account.username}
-                onChange={handleInputChange}
-                name="username"
-                type="email"
-                className="form-control"
-                id="username"
-                placeholder="name@example.com"
-              />
-              <label htmlFor="username">Email address</label>
-            </div>
-            <div className="form-floating">
-              <input
-                min="0"
-                value={account.password}
-                onChange={handleInputChange}
-                name="password"
-                type="password"
-                className="form-control"
-                id="password"
-                placeholder="Password"
-              />
-              <label htmlFor="password">Password</label>
-            </div>
-            <button className="btn btn-primary">登入</button>
-          </form>
-          <p className="mt-5 mb-3 text-muted">&copy; 2024~∞ - 六角學院</p>
-        </div>
-      )}
+      ) : <LoginPage getProducts={getProducts} setIsAuth={setIsAuth} />}
 
       {/* Modal */}
       <div
@@ -415,14 +421,26 @@ function App() {
             <div className="modal-body p-4">
               <div className="row">
                 <div className="col-md-4">
-                  {/* 主圖 */}
+                  <div className="mb-3">
+                    <label htmlFor="fileInput" className="form-label">
+                      {' '}
+                      圖片上傳{' '}
+                    </label>
+                    <input
+                      onChange={handleFileChange}
+                      type="file"
+                      accept=".jpg,.jpeg,.png"
+                      className="form-control"
+                      id="fileInput"
+                    />
+                  </div>
+                  <p>or</p>
                   <div className="mb-4">
                     <label htmlFor="primary-image" className="form-label">
-                      主圖
+                      輸入圖片網址
                     </label>
                     <div className="input-group">
                       <input
-                        min="0"
                         value={tempProduct.imageUrl}
                         onChange={handleModalInputChange}
                         name="imageUrl"
