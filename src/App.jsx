@@ -360,6 +360,7 @@ function App() {
           <form onSubmit={handleLogin} className="d-flex flex-column gap-3">
             <div className="form-floating mb-3">
               <input
+                min="0"
                 value={account.username}
                 onChange={handleInputChange}
                 name="username"
@@ -372,6 +373,7 @@ function App() {
             </div>
             <div className="form-floating">
               <input
+                min="0"
                 value={account.password}
                 onChange={handleInputChange}
                 name="password"
@@ -420,6 +422,7 @@ function App() {
                     </label>
                     <div className="input-group">
                       <input
+                        min="0"
                         value={tempProduct.imageUrl}
                         onChange={handleModalInputChange}
                         name="imageUrl"
@@ -449,6 +452,7 @@ function App() {
                           副圖 {index + 1}
                         </label>
                         <input
+                          min="0"
                           value={image}
                           onChange={(e) => handleImageChange(e, index)}
                           id={`imagesUrl-${index + 1}`}
@@ -497,6 +501,7 @@ function App() {
                       標題
                     </label>
                     <input
+                      min="0"
                       value={tempProduct.title}
                       onChange={handleModalInputChange}
                       name="title"
@@ -512,6 +517,7 @@ function App() {
                       分類
                     </label>
                     <input
+                      min="0"
                       value={tempProduct.category}
                       onChange={handleModalInputChange}
                       name="category"
@@ -527,6 +533,7 @@ function App() {
                       單位
                     </label>
                     <input
+                      min="0"
                       value={tempProduct.unit}
                       onChange={handleModalInputChange}
                       name="unit"
@@ -543,6 +550,7 @@ function App() {
                         原價
                       </label>
                       <input
+                        min="0"
                         value={tempProduct.origin_price}
                         onChange={handleModalInputChange}
                         name="origin_price"
@@ -557,6 +565,7 @@ function App() {
                         售價
                       </label>
                       <input
+                        min="0"
                         value={tempProduct.price}
                         onChange={handleModalInputChange}
                         name="price"
@@ -600,6 +609,7 @@ function App() {
 
                   <div className="form-check">
                     <input
+                      min="0"
                       checked={tempProduct.is_enabled}
                       onChange={handleModalInputChange}
                       name="is_enabled"
