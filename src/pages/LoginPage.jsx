@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 const { VITE_BASE_URL: BASE_URL } = import.meta.env;
 
-function LoginPage({ getProducts, setIsAuth }) {
+function LoginPage({ setIsAuth }) {
     const [account, setAccount] = useState({
         username: '',
         password: '',
@@ -32,13 +32,38 @@ function LoginPage({ getProducts, setIsAuth }) {
 
       axios.defaults.headers.common['Authorization'] = token;
 
-      getProducts();
+    //   getProducts();
       setIsAuth(true);
       console.log(response);
     } catch (error) {
       alert('登入失敗：' + error.message);
     }
   };
+
+  const checkUserLogin = async () => {
+    try {
+      const response = await axios.post(`${BASE_URL}/v2/api/user/check`);
+      if (response.data.success) {
+        setIsAuth(true);
+      } else {
+        setIsAuth(false);
+      }
+    } catch (error) {
+      setIsAuth(false);
+      alert('檢查使用者登入狀態失敗：' + error.message);
+    }
+  };
+
+  useEffect(() => {
+    const token = document.cookie.replace(
+      // eslint-disable-next-line no-useless-escape
+      /(?:(?:^|.*;\s*)hexToken\s*\=\s*([^;]*).*$)|^.*$/,
+      '$1'
+    );
+    axios.defaults.headers.common['Authorization'] = token;
+    checkUserLogin();
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <>
@@ -78,7 +103,6 @@ function LoginPage({ getProducts, setIsAuth }) {
 }
 
 LoginPage.propTypes =  {
-    getProducts: PropTypes.func.isRequired,
     setIsAuth: PropTypes.func.isRequired
 }
 
